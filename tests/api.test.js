@@ -138,6 +138,27 @@ describe('vlresports API Tests', () => {
         }
       }
     });
+    test('GET /api/v1/match/:id should return match details', async () => {
+      try {
+        const matchesResponse = await axios.get(`${BASE_URL}${API_VERSION}/matches`);
+        if (matchesResponse.data.data && matchesResponse.data.data.length > 0) {
+          const matchId = matchesResponse.data.data[0].id;
+          const response = await axios.get(`${BASE_URL}${API_VERSION}/matches/${matchId}`);
+
+          expect(response.status).toBe(200);
+          expect(response.data).toBeDefined();
+        } else {
+          expect(matchesResponse.status).toBe(200);
+        }
+      } catch (error) {
+        if (error.response) {
+          expect(error.response.status).toBeLessThan(500);
+        } else {
+          throw error
+        }
+      }
+
+    });
   });
 
   describe('Results Endpoints', () => {

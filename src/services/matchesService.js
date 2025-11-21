@@ -147,4 +147,97 @@ function parseDateString(dateStr) {
 
 module.exports = {
   getMatches,
+  getMatchById,
 };
+async function getMatchById(match_id) {
+  try {
+    const { data } = await axios.get(`${vlrgg_url}/${match_id}`);
+    const $ = cheerio.load(data);
+    const match = $('.wf-card.match-header');
+    const superDiv = match.find('.match-header-super');
+    const utcDate = superDiv.find('.match-header-date .moment-tz-convert');
+    const fullString = utcDate.first().text().trim() + ", " + utcDate.last().text().trim();
+    const vsDiv = match.find('.match-header-vs');
+    const team1Link = vsDiv.find('a.match-header-link.mod-1');
+    const team2Link = vsDiv.find('a.match-header-link.mod-2');
+    const team1Name = team1Link.find('.wf-title-med').text().trim();
+    const team2Name = team2Link.find('.wf-title-med').text().trim();
+    const team1Id = extractId(team1Link.attr('href'));
+    const team2Id = extractId(team2Link.attr('href'));
+
+    let status = vsDiv.find('.match-header-vs-note').first().text().trim().toLowerCase();
+    let is_upcoming = false;
+    const upcoming = vsDiv.find('.mod-upcoming');
+    if (upcoming.length > 0) {
+      status = "upcoming";
+      is_upcoming = true;
+    }
+
+    const scoreSpans = vsDiv.find('.js-spoiler span');
+    const team1Score = $(scoreSpans[0]).text().trim();
+    const team2Score = $(scoreSpans[2]).text().trim();
+
+
+    if (!is_upcoming && status == "final") {
+      let team1_won = false;
+      let team2_won = false;
+
+      if (team1Score > team2Score) {
+        team1_won = true;
+      } else {
+        team2_won = true;
+      }
+      return {
+        teams: [
+          {
+            name: team1Name,
+            id: team1Id,
+            score: team1Score !== "" ? team1Score : null,
+            won: team1_won
+          },
+          {
+            name: team2Name,
+            id: team2Id,
+            score: team2Score !== "" ? team2Score : null,
+            won: team2_won
+          },
+        ],
+        status,
+        event: null,
+        tournament: null,
+        img: null,
+        utcDate: fullString,
+      }
+    } else {
+      return {
+        teams: [
+          {
+            name: team1Name,
+            id: team1Id,
+            score: team1Score !== "" ? team1Score : null,
+          },
+          {
+            name: team2Name,
+            id: team2Id,
+            score: team2Score !== "" ? team2Score : null,
+          },
+        ],
+        status,
+        event: null,
+        tournament: null,
+        img: null,
+        utcDate: fullString,
+      }
+
+    }
+
+  } catch (err) {
+    console.log(err);
+    return
+  }
+}
+function extractId(href) {
+  if (!href) return null;
+  const parts = href.split('/');
+  return parts.length > 2 ? parts[2] : null;
+}

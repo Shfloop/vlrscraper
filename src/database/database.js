@@ -8,6 +8,7 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
 });
+const timezone = process.env.TIMEZONE || "";
 
 async function initializeDatabase() {
   try {
@@ -49,4 +50,4 @@ async function initializeDatabase() {
   }
 }
 
-module.exports = { initializeDatabase, pool };
+module.exports = { initializeDatabase, pool, timezone };

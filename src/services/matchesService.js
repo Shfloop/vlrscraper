@@ -1,7 +1,7 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 const { vlrgg_url } = require("../constants");
-
+const { timezone } = require("../database/database");
 /**
  * Retrieves and parses match data from the VLR website.
  * @returns {Object} An object containing match details including team names, countries, match status, event name, tournament name, match image URL, and match ETA.
@@ -74,7 +74,8 @@ async function getMatches() {
     const dateContaier = parent.prev();
     const date = dateContaier.text().trim().replace("Today", "");
     const time = $(element).find(".match-item-time").text().trim();
-    const dateAndTime = date + " " + time;
+    const dateAndTime = date + " " + time + " " + timezone;
+    console.log(dateAndTime);
     const newDate = new Date(dateAndTime);
     let timestamp = newDate.getTime();
     timestamp = Math.floor(timestamp / 1000);
